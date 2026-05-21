@@ -1,14 +1,7 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
 import sqlite3
 import plotly.graph_objects as go
-
-
-# ----------------------------
-# PAGE CONFIG
-# ----------------------------
 
 st.set_page_config(
     page_title="Stock Dashboard",
@@ -17,20 +10,33 @@ st.set_page_config(
 
 st.title("Stock Market Dashboard")
 
+# Stocks
+TICKERS = [
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "NVDA"
+]
 
-# ----------------------------
-# LOAD DATA
-# ----------------------------
+selected_ticker = st.sidebar.selectbox(
+    "Select Stock",
+    TICKERS
+)
 
-def load_data():
+
+# Loading Data
+
+def load_data(ticker):
 
     conn = sqlite3.connect(
         "data/stocks.db"
     )
 
-    # Change table name if needed
-    query = "SELECT * FROM AAPL"
-
+    query = f"""
+    SELECT * FROM {ticker}
+    """
+    
     df = pd.read_sql(
         query,
         conn
@@ -40,13 +46,14 @@ def load_data():
 
     return df
 
-
-df = load_data()
-
-
-# ----------------------------
-# DATA CLEANING
-# ----------------------------
+try:
+    df = load_data(selected_ticker)
+except Exception as e:
+    st.error(
+        f"Could not load data for {selected_ticker}"
+    )
+    st.stop()
+# Data Cleaning
 
 df["Date"] = pd.to_datetime(
     df["Date"]
@@ -56,19 +63,11 @@ df = df.sort_values(
     by="Date"
 )
 
-
-# ----------------------------
-# METRICS
-# ----------------------------
-
+# Metrics
 latest_close = df["Close"].iloc[-1]
-
 highest_price = df["High"].max()
-
 lowest_price = df["Low"].min()
-
 volume = df["Volume"].iloc[-1]
-
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -92,12 +91,11 @@ col4.metric(
     f"{volume:,}"
 )
 
+#Charts
 
-# ----------------------------
-# PRICE CHART
-# ----------------------------
-
-st.subheader("Closing Price")
+st.subheader(
+    f"{selected_ticker} Closing Price"
+    )
 
 price_fig = go.Figure()
 
@@ -112,6 +110,7 @@ price_fig.add_trace(
 
 price_fig.update_layout(
     height=500,
+    title=f"{selected_ticker} Stock Price",
     xaxis_title="Date",
     yaxis_title="Price"
 )
@@ -121,13 +120,11 @@ st.plotly_chart(
     use_container_width=True
 )
 
+# SMA
 
-# ----------------------------
-# MOVING AVERAGES
-# ----------------------------
-
-st.subheader("Moving Averages")
-
+st.subheader(
+    f"{selected_ticker} Moving Averages"
+)
 ma_fig = go.Figure()
 
 ma_fig.add_trace(
@@ -139,8 +136,7 @@ ma_fig.add_trace(
     )
 )
 
-if "SMA_20" in df.columns:
-
+if "SMA_20" in df.columns:  
     ma_fig.add_trace(
         go.Scatter(
             x=df["Date"],
@@ -151,7 +147,6 @@ if "SMA_20" in df.columns:
     )
 
 if "SMA_50" in df.columns:
-
     ma_fig.add_trace(
         go.Scatter(
             x=df["Date"],
@@ -170,12 +165,11 @@ st.plotly_chart(
     use_container_width=True
 )
 
+# Volume Chart
 
-# ----------------------------
-# VOLUME CHART
-# ----------------------------
-
-st.subheader("Trading Volume")
+st.subheader(
+    f"{selected_ticker} Trading Volume"
+    )
 
 volume_fig = go.Figure()
 
@@ -196,25 +190,8 @@ st.plotly_chart(
     use_container_width=True
 )
 
-
-# ----------------------------
-# RAW DATA
-# ----------------------------
+# Raw Data
 
 with st.expander("Show Raw Data"):
 
     st.dataframe(df)
-
-
-# ----------------------------
-# DOWNLOAD CSV
-# ----------------------------
-
-csv = df.to_csv(index=False)
-
-st.download_button(
-    label="Download CSV",
-    data=csv,
-    file_name="stock_data.csv",
-    mime="text/csv"
-)
