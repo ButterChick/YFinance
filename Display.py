@@ -189,9 +189,7 @@ st.plotly_chart(
     volume_fig,
     use_container_width=True
 )
-
 # Raw Data
-
 with st.expander("Show Raw Data"):
 
     st.dataframe(df)

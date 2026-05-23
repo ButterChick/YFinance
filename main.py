@@ -6,7 +6,6 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 import sqlite3
 
-
 CONFIG = {
     "tickers": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA"],
     "start_date": "2022-01-01",
@@ -65,13 +64,13 @@ def add_indicators(df: pd.DataFrame) -> pd.DataFrame: # Takes a DataFrame and re
     df["SMA_20"] = df["Close"].rolling(20).mean() #Simple moving Average Of 20 days
     df["SMA_50"] = df["Close"].rolling(50).mean() #Simple moving Average Of 50 days
 
-    df["Daily_Return"] = df["Close"].pct_change()
+    df["Daily_Return"] = df["Close"].pct_change() #Percentage change in a stock
 
     return df
 
 # Save Parquet
 
-def save_parquet(df: pd.DataFrame, ticker: str, parquet_dir: str):
+def save_parquet(df: pd.DataFrame, ticker: str, parquet_dir: str):  #No return value, Takes dataframe, ticker and Parquet dir
     Path(parquet_dir).mkdir(parents=True, exist_ok=True)
 
     file_path = f"{parquet_dir}/{ticker}.parquet"
@@ -87,23 +86,6 @@ def save_sqlite(df: pd.DataFrame, db_path: str, table_name: str):
     df.to_sql(table_name, conn, if_exists="replace", index=False)
 
     conn.close()
-
-# Visulaization
-
-def plot_stock(df: pd.DataFrame, ticker: str):
-    plt.figure(figsize=(12, 6))
-
-    plt.plot(df["Date"], df["Close"], label="Close")
-    plt.plot(df["Date"], df["SMA_20"], label="SMA 20")
-    plt.plot(df["Date"], df["SMA_50"], label="SMA 50")
-
-    plt.title(f"{ticker} Stock Price")
-    plt.xlabel("Date")
-    plt.ylabel("Price")
-    plt.legend()
-    plt.grid(True)
-
-    plt.show()
 
 # Main Pipeline
 
@@ -129,9 +111,6 @@ def run_pipeline():
             # Load
             save_parquet(df, ticker, CONFIG["parquet_dir"])
             save_sqlite(df, CONFIG["sqlite_path"], ticker)
-
-            # Visualize
-            plot_stock(df, ticker)
 
             logger.info(f"Completed {ticker}")
 
