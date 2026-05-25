@@ -83,23 +83,6 @@ cd <repository-name>
 
 Create virtual environment:
 
-```bash
-python -m venv venv
-```
-
-Activate virtual environment:
-
-### Windows
-
-```bash
-venv\Scripts\activate
-```
-
-### Linux / macOS
-
-```bash
-source venv/bin/activate
-```
 
 Install dependencies:
 
@@ -111,15 +94,14 @@ pip install -r requirements.txt
 
 # Requirements
 
-Example `requirements.txt`
+`requirements.txt`
 
 ```txt
-pandas
-yfinance
-streamlit
-plotly
-matplotlib
-pyarrow
+streamlit==1.55.0
+yfinance==1.3.0
+pandas==2.3.3
+plotly==6.7.0
+matplotlib==3.10.8
 ```
 
 ---
@@ -248,7 +230,3 @@ This project demonstrates:
 - Backend/frontend separation
 
 ---
-
-# License
-
-MIT License
